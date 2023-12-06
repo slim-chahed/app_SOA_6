@@ -9,3 +9,4 @@ public interface CompteRepository extends JpaRepository<Compte, Long> {
     // Interface reposant sur Spring Data JPA pour les opérations CRUD sur les comptes
 
 }
+

@@ -1,65 +1,50 @@
 package web;
 
 import entities.Compte;
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.MediaType;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.SpringApplication;
-import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.*;
 import repositories.CompteRepository;
 
-
-import java.util.Date;
 import java.util.List;
-@Component
-@Path("/banque")
+//methode RestController n'est pas pour le devoir mais pour le test
+@RestController
+@RequestMapping("/banque")
 public class CompteRestJaxRESAPI {
 
     @Autowired
     private CompteRepository compteRepository;
 
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/comptes")
-    public List<Compte> compteList() {
+    @GetMapping("/comptes")
+    public List<Compte> getAllComptes() {
         return compteRepository.findAll();
     }
 
-    @GET
-    @Path("/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Compte getOne(@PathParam("id") Long id) {
-        return compteRepository.findById(id).orElse(null);
+    @GetMapping("/comptes/{id}")
+    public Compte getCompteById(@PathVariable Long id) {
+        return compteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Compte non trouvé"));
     }
 
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    public void save(Compte compte) {
-        compteRepository.save(compte);
+    @PostMapping("/comptes")
+    public Compte createCompte(@RequestBody Compte compte) {
+        return compteRepository.save(compte);
     }
 
-    @PUT
-    @Path("/{id}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public void update(Compte compte, @PathParam("id") Long id) {
-        compteRepository.findById(id).ifPresent(existingCompte -> {
-            // Mettre à jour les attributs de existingCompte avec les valeurs de 'compte' et sauvegarder
-            existingCompte.setSolde(compte.getSolde());
-            existingCompte.setDatecreation(compte.getDatecreation());
-            existingCompte.setType(compte.getType());
-            existingCompte.setEtat(compte.getEtat());
-            compteRepository.save(existingCompte);
-        });
+    @PutMapping("/comptes/{id}")
+    public Compte updateCompte(@PathVariable Long id, @RequestBody Compte updatedCompte) {
+        return compteRepository.findById(id)
+                .map(existingCompte -> {
+                    existingCompte.setSolde(updatedCompte.getSolde());
+                    existingCompte.setDatecreation(updatedCompte.getDatecreation());
+                    existingCompte.setType(updatedCompte.getType());
+                    existingCompte.setEtat(updatedCompte.getEtat());
+                    return compteRepository.save(existingCompte);
+                })
+                .orElseThrow(() -> new RuntimeException("Compte non trouvé"));
     }
 
-    @DELETE
-    @Path("/{id}")
-    public void delete(@PathParam("id") Long id) {
+    @DeleteMapping("/{id}")
+    public void deleteCompte(@PathVariable Long id) {
         compteRepository.deleteById(id);
     }
-
-
 }
